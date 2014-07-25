@@ -125,17 +125,15 @@ public class ChorusReadDelay extends Instruction {
 			}
 		}
 
-		int lfoPos = lfoval >> 8;
-		
 		// possibly invert the waveform
 		if(compa) {
 			// for SIN LFOs, just flip the wave over
 			if(lfo == 0 || lfo == 1) {
-				lfoPos = -lfoPos;
+				lfoval = -lfoval;
 			}
 			// for RAMP LFOs, i think we need to do maxval - offset
 			else {
-				lfoPos = state.getRampLFOAmp(lfo - 2) - lfoPos;
+				lfoval = state.getRampLFOAmp(lfo - 2) - lfoval;
 			}
 		}
 
@@ -143,10 +141,11 @@ public class ChorusReadDelay extends Instruction {
 		if(na) {
 			int amp = state.getRampLFOAmp(lfo - 2);
 			int halfAmp = amp >> 1;
-			int xfade = lfoPos;
+			int xfade = lfoval;
+      
 			// if we're beyond the middle, fade down
-			if(lfoPos > halfAmp) {
-				xfade = halfAmp - xfade;
+			if(lfoval > halfAmp) {
+				xfade = amp - xfade;
 			}
 			// fix the xfade amplitude based on the ramp maxval
 			if(amp == 0x3fffff) {
@@ -161,27 +160,19 @@ public class ChorusReadDelay extends Instruction {
 			else {
 				xfade = xfade << 4;
 			}
+      xfade = xfade >> 8;
 			// do the crossfade
-			tempReg.setValue(addr);
-			tempReg.mult(xfade);
+			tempReg.setValue(state.getDelayVal(addr));
+			tempReg.mult(compc ? 16383 - xfade : xfade);
 			state.getACC().add(tempReg.getValue());
 		}
 		// do delay offset lookup
 		else {
-			int delayPos = addr + lfoPos;
-			int inter = lfoval & 0xff;
-
-			// get the delay memory value and scale it by the interpolation amount
-			if(compc) {
-				tempReg.setValue(state.getDelayVal(delayPos));
-				tempReg.mult((255 - inter) << 7);
-				state.getACC().add(tempReg.getValue());
-			}
-			else {
-				tempReg.setValue(state.getDelayVal(delayPos));
-				tempReg.mult(inter << 7);
-				state.getACC().add(tempReg.getValue());
-			}			
+			int delayPos = addr + (lfoval >> 10);
+			int inter = (lfoval & 0x3ff) << 4;
+			tempReg.setValue(state.getDelayVal(delayPos));
+			tempReg.mult(compc ? 16383 - inter : inter);
+			state.getACC().add(tempReg.getValue());
 		}
 	}
 }

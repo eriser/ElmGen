@@ -412,7 +412,6 @@ public class SimulatorTests extends TestCase {
 		for(int i = 0; i < 33000; i ++) {
 			state.sampleIncrement();
 			cho0.simulate(state);
-//			System.out.println("i: " + i + " - sin: " + state.getACCVal());
 			if(i < 16473) {
 				assertEquals("value is not > 0", true, state.getACCVal() > 0);
 				if(i < 8238) {
@@ -430,9 +429,9 @@ public class SimulatorTests extends TestCase {
 			}
 			prevVal = state.getACCVal();
 			cho1.simulate(state);
-//			System.out.println("temp: " + prevVal + " - sin1: " + state.getACCVal());
+      float ratio = (float)(prevVal) / (float)state.getACCVal();
 			assertEquals("value of sin1 is not half the amplitude of sin0", 
-					true, (state.getACCVal() < (prevVal / 2) + 1));
+					true, Math.abs(ratio - 2.0) <= 0.01);
 		}
 	}
 	

@@ -34,6 +34,7 @@ public class ChorusScaleOffset extends Instruction {
 	private boolean cos;
 	private boolean compc;
 	private boolean compa;
+	private boolean na;
 	
 	/**
 	 * Scale offset based on LFO position.
@@ -59,6 +60,9 @@ public class ChorusScaleOffset extends Instruction {
 		}
 		if((flags & ElmProgram.CHO_COMPA) != 0) {
 			compa = true;
+		}
+		if((flags & ElmProgram.CHO_NA) != 0) {
+			na = true;
 		}
 		checkS15(offset);
 		this.offset = offset;
@@ -97,22 +101,45 @@ public class ChorusScaleOffset extends Instruction {
 			lfoval = state.getRampLFOVal(lfo - 2);
 		}
 
-		int lfoPos = lfoval;
-		
-		// possibly invert the waveform - is this also where compc goes?
-		if(compa || compc) {
+		// possibly invert the waveform
+		if(compa || (compc && !na)) {
 			// for SIN LFOs, just flip the wave over
 			if(lfo == 0 || lfo == 1) {
-				lfoPos = -lfoPos;
+				lfoval = -lfoval;
 			}
 			// for RAMP LFOs, i think we need to do maxval - offset
 			else {
-				lfoPos = state.getRampLFOAmp(lfo - 2) - lfoPos;
+				lfoval = state.getRampLFOAmp(lfo - 2) - lfoval;
 			}
 		}
-
-		double scale = Util.regToDouble(lfoPos);
-		state.getACC().scale(scale);
-		state.getACC().add(offset);		
+    
+		if(na) {
+			int amp = state.getRampLFOAmp(lfo - 2);
+			int halfAmp = amp >> 1;
+			int xfade = lfoval;
+			if(lfoval > halfAmp) {
+				xfade = amp - xfade;
+			}
+			// fix the xfade amplitude based on the ramp maxval
+			if(amp == 0x3fffff) {
+				xfade = xfade << 1;
+			}
+			else if(amp == 0x1fffff) {
+				xfade = xfade << 2;
+			}
+			else if(amp == 0x1fffff) {
+				xfade = xfade << 3;
+			}
+			else {
+				xfade = xfade << 4;
+			}
+      xfade = xfade >> 8;
+      state.getACC().mult(compc ? 16383 - xfade : xfade);
+			state.getACC().add(offset);
+		} else {
+  		double scale = Util.regToDouble(lfoval);
+  		state.getACC().scale(scale);
+  		state.getACC().add(offset);		
+		}
 	}
 }

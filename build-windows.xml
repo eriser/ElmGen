@@ -3,7 +3,7 @@
 <project name="elmGen" default="jar">
 	
 	<!-- this sets the bmix.version property -->
-	<property file="src/com/kilpatrickaudio/elmGen/version.properties"/>
+	<property file="src/org/andrewkilpatrick/elmGen/version.properties"/>
 	
 <!--	<taskdef name="jarbundler" 
 		classpath="lib_build_osx/jarbundler.jar:lib_build_osx/xercesImpl.jar:lib_build_osx/xml-apis.jar"
@@ -25,7 +25,7 @@
   		          </fileset>
     			</classpath>
     		</javac>
-    	<copy file="src/com/kilpatrickaudio/elmGen/version.properties" todir="build/com/kilpatrickaudio/elmGen"/>
+    	<copy file="src/org/andrewkilpatrick/elmGen/version.properties" todir="build/org/andrewkilpatrick/elmGen"/>
     </target>
 	
 	<target name="jar" depends="clean,compile" description="Creates an executable JAR of the application">

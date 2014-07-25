@@ -74,7 +74,7 @@ public class SinLFO {
 	public int getCosValue() {
 		long val = (cos * amp) >> 15;
 		if(val < 0) {
-			return -(int)(val & 0x7fffff);
+			return -(int)(0x7fffff - (val & 0x7fffff));
 		}
 		return (int)(val & 0x7fffff);
 	}

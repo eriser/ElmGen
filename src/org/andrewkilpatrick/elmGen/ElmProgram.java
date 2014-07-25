@@ -527,6 +527,25 @@ public class ElmProgram {
 		}
 		instList.add(new ReadDelay(addr, scale));
 	}
+  
+	/**
+	 * Reads a value from the delay memory, scales it by scale and
+	 * then adds it to the current value of the ACC.
+	 * 
+	 * @param memName the delay memory segment name
+	 * @param offset the read position (0 to length) within the memory segment
+	 * @param scale the amount to scale by before adding to the ACC
+	 */
+	public void readDelay(String memName, int offset, double scale) {
+		checkCodeLen();
+		MemSegment seg = getDelayMemByName(memName);
+		if(offset < 0 || offset > seg.getLength()) {
+			throw new ElmProgramException("offset out of range: " + offset +
+					" - valid range: 0 to " + seg.getLength());
+		}
+		int addr = seg.getStart() + offset;
+		instList.add(new ReadDelay(addr, scale));
+	}
 	
 	/**
 	 * Reads from the delay memory based on the address in the indirect
@@ -557,11 +576,10 @@ public class ElmProgram {
 	 * by scale.
 	 * 
 	 * @param memName the delay memory segment name
-	 * @param offset the read position (0.0 to 1.0) within the memory segment
+	 * @param offset the write position (0.0 to 1.0) within the memory segment
 	 * @param scale the amount to scale the ACC by after writing to the delay memory
 	 */
 	public void writeDelay(String memName, double offset, double scale) {
-		checkCodeLen();
 		checkCodeLen();
 		if(offset < 0.0 || offset > 1.0) {
 			throw new ElmProgramException("offset out of range: " + offset +
@@ -576,6 +594,25 @@ public class ElmProgram {
 		else if(offset > 0.0) {
 			addr += Math.round((double)(seg.getLength() - 1) * offset);
 		}		
+		instList.add(new WriteDelay(addr, scale));
+	}
+  
+	/**
+	 * Writes the current ACC value to the delay memory. Then scales the ACC
+	 * by scale.
+	 * 
+	 * @param memName the delay memory segment name
+	 * @param offset the write position (0 to length) within the memory segment
+	 * @param scale the amount to scale the ACC by after writing to the delay memory
+	 */
+	public void writeDelay(String memName, int offset, double scale) {
+		checkCodeLen();
+		MemSegment seg = getDelayMemByName(memName);
+		if(offset < 0 || offset > seg.getLength()) {
+			throw new ElmProgramException("offset out of range: " + offset +
+					" - valid range: 0 to " + seg.getLength());
+		}
+		int addr = seg.getStart() + offset;
 		instList.add(new WriteDelay(addr, scale));
 	}
 
@@ -598,7 +635,7 @@ public class ElmProgram {
 	 * to the ACC.
 	 * 
 	 * @param memName the delay memory segment name
-	 * @param offset the read position (0.0 to 1.0) within the memory segment
+	 * @param offset the write position (0.0 to 1.0) within the memory segment
 	 * @param scale the amount to scale the ACC by after writing to the delay memory
 	 */	
 	public void writeAllpass(String memName, double offset, double scale) {
@@ -618,6 +655,27 @@ public class ElmProgram {
 		}
 		instList.add(new WriteAllpass(addr, scale));
 	}
+
+	/**
+	 * Writes the current ACC value in delay memory at addr. Then scales the ACC
+	 * by scale. Finally, adds the contents of the previous delay memory read
+	 * to the ACC.
+	 * 
+	 * @param memName the delay memory segment name
+	 * @param offset the write position (0.0 to 1.0) within the memory segment
+	 * @param scale the amount to scale the ACC by after writing to the delay memory
+	 */	
+	public void writeAllpass(String memName, int offset, double scale) {
+		checkCodeLen();
+		MemSegment seg = getDelayMemByName(memName);
+		if(offset < 0 || offset > seg.getLength()) {
+			throw new ElmProgramException("offset out of range: " + offset +
+					" - valid range: 0 to " + seg.getLength());
+		}
+		int addr = seg.getStart() + offset;
+		instList.add(new WriteAllpass(addr, scale));
+	}
+
 	
 	/**
 	 * Loads one of the SIN LFOs with frequency and amplitude settings.
@@ -685,7 +743,7 @@ public class ElmProgram {
 	 * @param lfo the LFO to use
 	 * @param flags the flags
 	 * @param memName the delay memory segment name
-	 * @param offset the base read position (0.0 to 1.0) within the memory segment
+	 * @param offset the base read position (0 to len) within the memory segment
 	 */
 	public void chorusReadDelay(int lfo, int flags, String memName, int offset) {
 		checkCodeLen();

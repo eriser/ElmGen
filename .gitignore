@@ -1,0 +1,15 @@
+# Precompiled python modules
+*.pyc
+
+# LaTeX compiled file
+*.pdf
+*.log
+*.aux
+
+# OS X crap
+.DS_Stor?
+
+# Build directory
+build
+bin
+dist
